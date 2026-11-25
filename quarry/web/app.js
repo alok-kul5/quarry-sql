@@ -144,6 +144,7 @@ function onEvent(ev) {
     case "answer":
       addStep("answer", ev.fallback ? "Answer (from the result)" : "Answer", t);
       $("#answer").replaceChildren(document.createTextNode(ev.text || "No answer."));
+      $("#answer").classList.toggle("long", (ev.text || "").length > 180);
       break;
     case "error":
       addStep("err", "Stopped", t, pre(ev.message));
@@ -242,7 +243,7 @@ function showTable(r) {
   }
   table.append(thead, tbody);
   wrap.replaceChildren(table);
-  $("#resultMeta").textContent = `${r.row_count.toLocaleString()} rows${r.truncated ? " (capped)" : ""} · ${r.elapsed_ms} ms`;
+  $("#resultMeta").textContent = `${r.row_count.toLocaleString()} row${r.row_count === 1 ? "" : "s"}${r.truncated ? " (capped)" : ""} · ${r.elapsed_ms} ms`;
 }
 
 // ---------- chart ----------
@@ -318,6 +319,9 @@ $("#runsBtn").addEventListener("click", async () => {
 async function replay(id) {
   const r = await fetch(`/api/runs/${encodeURIComponent(id)}`).then((x) => x.json());
   $("#q").value = r.question;
+  const start = (r.trace || [])[0] || {};
+  if (typeof start.retrieval === "boolean") $("#retrieval").checked = start.retrieval;
+  if (r.model && [...$("#model").options].some((o) => o.value === r.model)) $("#model").value = r.model;
   resetWork();
   $("#work").hidden = false;
   for (const ev of r.trace) onEvent(ev);
@@ -325,4 +329,9 @@ async function replay(id) {
   if (r.chart) showChart(r.chart);
 }
 
-boot();
+// Shareable links: #run=<id> replays a saved run, #schema opens the schema sheet.
+boot().then(() => {
+  const m = /^#run=([0-9]{8}-[0-9]{6}-[0-9a-f]{6})$/.exec(location.hash);
+  if (m) { document.body.classList.add("compact"); replay(m[1]); }
+  else if (location.hash === "#schema") $("#schemaBtn").click();
+});

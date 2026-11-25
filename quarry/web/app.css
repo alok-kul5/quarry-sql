@@ -179,6 +179,10 @@ h1 em {
   background: linear-gradient(90deg, var(--sand-2), var(--sand), transparent);
 }
 .answer-text { margin: 0; font: 400 clamp(1.25rem, 2.3vw, 1.7rem)/1.35 var(--serif); letter-spacing: -.01em; white-space: pre-wrap; }
+.answer-text.long { font-size: clamp(1.05rem, 1.6vw, 1.22rem); line-height: 1.5; }
+body.compact .hero { padding-top: 28px; padding-bottom: 24px; }
+body.compact .hero .eyebrow, body.compact .hero h1, body.compact .hero .lede, body.compact .hero .chips { display: none; }
+body.compact .hero .controls { margin-bottom: 0; }
 .answer-text.error { color: var(--rust); font-size: 1.1rem; font-family: var(--sans); }
 .shimmer {
   background: linear-gradient(90deg, var(--mute), var(--chalk) 50%, var(--mute)); background-size: 200% 100%;
