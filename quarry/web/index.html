@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quarry · Taxi analyst</title>
+<meta name="description" content="Ask business questions about 3 million NYC taxi trips. A local LLM writes, runs and repairs the SQL.">
+<link rel="icon" href="/static/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="/"><img src="/static/mark.svg" alt="" width="30" height="30"><span>Quarry</span></a>
+  <nav class="top-meta">
+    <span class="status" id="status"><i></i><b>checking Ollama</b></span>
+    <button class="ghost" id="schemaBtn" type="button">Schema</button>
+    <button class="ghost" id="runsBtn" type="button">Run log</button>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <p class="eyebrow reveal">NYC TLC open data · January 2024 · <span id="rowCount">3,021,155</span> trips</p>
+  <h1 class="reveal">Ask the city's taxi ledger <em>anything.</em></h1>
+  <p class="lede reveal">A local model reads the schema, writes DuckDB SQL, fixes its own mistakes and shows every step. Nothing leaves your machine.</p>
+
+  <form class="ask reveal" id="askForm" autocomplete="off">
+    <label class="sr" for="q">Question</label>
+    <input id="q" name="q" maxlength="500" placeholder="Which pickup zones earn the biggest tips?" required>
+    <button class="go" type="submit" id="goBtn"><span>Ask</span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12h13m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </form>
+
+  <div class="controls reveal">
+    <label class="pill select"><span>Model</span><select id="model"></select></label>
+    <label class="pill toggle"><input type="checkbox" id="retrieval" checked><span class="sw" aria-hidden="true"></span><span>Schema retrieval</span></label>
+  </div>
+  <div class="chips reveal" id="examples"></div>
+</section>
+
+<main class="work" id="work" hidden>
+  <div class="col-main">
+    <article class="card answer" id="answerCard">
+      <div class="card-head"><h2>Answer</h2><div class="kpis" id="kpis"></div></div>
+      <p class="answer-text" id="answer"><span class="shimmer">Thinking through the data…</span></p>
+    </article>
+
+    <article class="card">
+      <div class="card-head"><h2>Generated SQL</h2><button class="ghost sm" id="copySql" type="button">Copy</button></div>
+      <pre class="sql" id="sql"><code>—</code></pre>
+    </article>
+
+    <article class="card" id="chartCard" hidden>
+      <div class="card-head"><h2 id="chartTitle">Chart</h2></div>
+      <div class="chart-wrap"><canvas id="chart" aria-label="Result chart" role="img"></canvas></div>
+    </article>
+
+    <article class="card">
+      <div class="card-head"><h2>Result</h2><span class="muted" id="resultMeta"></span></div>
+      <div class="table-wrap" id="table"><p class="muted">No rows yet.</p></div>
+    </article>
+  </div>
+
+  <aside class="col-trace">
+    <article class="card trace-card">
+      <div class="card-head"><h2>Trace</h2><span class="muted" id="traceMeta"></span></div>
+      <ol class="trace" id="trace"></ol>
+    </article>
+  </aside>
+</main>
+
+<dialog id="schemaDlg" class="sheet"><div class="sheet-head"><h2>Schema</h2><button class="ghost sm" data-close>Close</button></div><div id="schemaBody"></div></dialog>
+<dialog id="runsDlg" class="sheet"><div class="sheet-head"><h2>Run log</h2><button class="ghost sm" data-close>Close</button></div><div id="runsBody"></div></dialog>
+
+<footer class="foot">Quarry runs on Ollama and DuckDB. Data: NYC Taxi &amp; Limousine Commission trip records.</footer>
+</body>
+</html>
