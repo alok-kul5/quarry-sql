@@ -23,7 +23,7 @@ async function boot() {
   const sel = $("#model");
   if (health.models && health.models.length) {
     status.classList.add("ok");
-    status.querySelector("b").textContent = `Ollama · ${health.models.length} models`;
+    status.textContent = `Running on your machine, ${health.models.filter((m) => !/embed/.test(m)).length} local models`;
     for (const m of health.models.filter((m) => !/embed/.test(m))) {
       const o = el("option", "", m); o.value = m;
       if (m === health.default_model) o.selected = true;
@@ -31,7 +31,7 @@ async function boot() {
     }
   } else {
     status.classList.add("bad");
-    status.querySelector("b").textContent = "Ollama offline";
+    status.textContent = "Ollama is not running. Start it to ask.";
     const o = el("option", "", health.default_model || "qwen2.5:7b"); sel.append(o);
   }
   const box = $("#examples");
@@ -183,14 +183,18 @@ function setShimmer(text) {
 function showError(msg) { const a = $("#answer"); a.className = "answer-text error"; a.textContent = msg; }
 
 function kpis(ev) {
+  // Plain sentence, no chips: "6.0 seconds, 2 steps, 1 repair".
   const k = $("#kpis");
-  const add = (label, value, warn) => {
-    const s = el("span", `kpi${warn ? " warn" : ""}`); s.append(el("b", "", value), document.createTextNode(` ${label}`)); k.append(s);
-  };
-  add("s", (ev.elapsed_ms / 1000).toFixed(1));
-  add(ev.steps === 1 ? "step" : "steps", ev.steps);
-  if (ev.repairs) add(ev.repairs === 1 ? "repair" : "repairs", ev.repairs, true);
-  if (ev.flagged_cells) add("values withheld", ev.flagged_cells, true);
+  const parts = [[(ev.elapsed_ms / 1000).toFixed(1), "seconds"], [ev.steps, ev.steps === 1 ? "step" : "steps"]];
+  if (ev.repairs) parts.push([ev.repairs, ev.repairs === 1 ? "repair" : "repairs", true]);
+  if (ev.flagged_cells) parts.push([ev.flagged_cells, "values withheld", true]);
+  k.replaceChildren();
+  parts.forEach(([v, label, warn], i) => {
+    const s = el("span", warn ? "warn" : "");
+    s.append(el("b", "", v), document.createTextNode(` ${label}`));
+    if (i) k.append(document.createTextNode(", "));
+    k.append(s);
+  });
 }
 
 // ---------- SQL ----------

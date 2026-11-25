@@ -19,7 +19,7 @@
 <header class="top">
   <a class="brand" href="/"><img src="/static/mark.svg" alt="" width="30" height="30"><span>Quarry</span></a>
   <nav class="top-meta">
-    <span class="status" id="status"><i></i><b>checking Ollama</b></span>
+    <p class="status" id="status">Looking for Ollama…</p>
     <button class="ghost" id="schemaBtn" type="button">Schema</button>
     <button class="ghost" id="runsBtn" type="button">Run log</button>
   </nav>
@@ -27,7 +27,7 @@
 
 <section class="hero">
   <div class="hero-glow" aria-hidden="true"></div>
-  <p class="eyebrow reveal">NYC TLC open data · January 2024 · <span id="rowCount">3,021,155</span> trips</p>
+  <p class="eyebrow reveal">Real NYC taxi records from January 2024, all <span id="rowCount">3,021,155</span> trips of them.</p>
   <h1 class="reveal">Ask the city's taxi ledger <em>anything.</em></h1>
   <p class="lede reveal">A local model reads the schema, writes DuckDB SQL, fixes its own mistakes and shows every step. Nothing leaves your machine.</p>
 
@@ -47,12 +47,12 @@
 <main class="work" id="work" hidden>
   <div class="col-main">
     <article class="card answer" id="answerCard">
-      <div class="card-head"><h2>Answer</h2><div class="kpis" id="kpis"></div></div>
+      <div class="card-head"><h2>The answer</h2><div class="kpis" id="kpis"></div></div>
       <p class="answer-text" id="answer"><span class="shimmer">Thinking through the data…</span></p>
     </article>
 
     <article class="card">
-      <div class="card-head"><h2>Generated SQL</h2><button class="ghost sm" id="copySql" type="button">Copy</button></div>
+      <div class="card-head"><h2>The SQL it wrote</h2><button class="ghost sm" id="copySql" type="button">Copy</button></div>
       <pre class="sql" id="sql"><code>—</code></pre>
     </article>
 
@@ -62,14 +62,14 @@
     </article>
 
     <article class="card">
-      <div class="card-head"><h2>Result</h2><span class="muted" id="resultMeta"></span></div>
+      <div class="card-head"><h2>What came back</h2><span class="muted" id="resultMeta"></span></div>
       <div class="table-wrap" id="table"><p class="muted">No rows yet.</p></div>
     </article>
   </div>
 
   <aside class="col-trace">
     <article class="card trace-card">
-      <div class="card-head"><h2>Trace</h2><span class="muted" id="traceMeta"></span></div>
+      <div class="card-head"><h2>How it got there</h2><span class="muted" id="traceMeta"></span></div>
       <ol class="trace" id="trace"></ol>
     </article>
   </aside>
