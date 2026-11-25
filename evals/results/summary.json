@@ -42,5 +42,49 @@
   "repaired_and_correct": 0,
   "avg_tool_calls": 1.2,
   "avg_seconds": 2.5
+ },
+ {
+  "model": "qwen3:4b",
+  "mode": "none",
+  "correct": 1,
+  "n": 3,
+  "accuracy": 33.3,
+  "easy": [
+   1,
+   1
+  ],
+  "medium": [
+   0,
+   0
+  ],
+  "hard": [
+   0,
+   2
+  ],
+  "repaired_and_correct": 0,
+  "avg_tool_calls": 9.0,
+  "avg_seconds": 565.9
+ },
+ {
+  "model": "qwen3:4b",
+  "mode": "retrieval",
+  "correct": 46,
+  "n": 50,
+  "accuracy": 92.0,
+  "easy": [
+   15,
+   15
+  ],
+  "medium": [
+   20,
+   23
+  ],
+  "hard": [
+   11,
+   12
+  ],
+  "repaired_and_correct": 0,
+  "avg_tool_calls": 1.2,
+  "avg_seconds": 131.5
  }
 ]
