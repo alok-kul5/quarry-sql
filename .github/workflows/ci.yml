@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt ruff
+      - name: lint
+        run: ruff check quarry tests evals scripts --select E,F,W,I --ignore E501,I001
+      - name: tests (LLM is scripted, no Ollama needed)
+        run: pytest -q
+      - name: eval scorer sanity
+        run: python evals/run_eval.py --summary-only
