@@ -80,7 +80,7 @@ async def ask(body: Ask):
     loop = asyncio.get_running_loop()
     queue: asyncio.Queue = asyncio.Queue()
     agent = Agent(state["db"], OllamaClient(body.model), retrieval=body.retrieval,
-                  retriever=state["retriever"])
+                  retriever=state["retriever"], log_dir=RUNS_DIR)
 
     def work():
         try:

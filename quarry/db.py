@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import decimal
+import os
 import threading
 import time
 from dataclasses import dataclass, field
@@ -76,7 +77,8 @@ class Database:
             str(self.path),
             read_only=True,
             config={"enable_external_access": False, "autoload_known_extensions": False,
-                    "autoinstall_known_extensions": False},
+                    "autoinstall_known_extensions": False,
+                    "memory_limit": os.environ.get("QUARRY_MEMORY_LIMIT", "1GB"), "threads": 4},
         )
         self._con.execute("SET lock_configuration = true")
         self._schema: list[Table] | None = None
