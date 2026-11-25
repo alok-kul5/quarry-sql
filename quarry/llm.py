@@ -23,7 +23,8 @@ class LLMError(RuntimeError):
 
 
 class OllamaClient:
-    def __init__(self, model: str = DEFAULT_MODEL, url: str = OLLAMA_URL, timeout: float = 180.0,
+    def __init__(self, model: str = DEFAULT_MODEL, url: str = OLLAMA_URL,
+                 timeout: float = float(os.environ.get("QUARRY_LLM_TIMEOUT", "180")),
                  num_ctx: int = int(os.environ.get("QUARRY_NUM_CTX", "8192"))):
         self.model = model
         self.url = url.rstrip("/")
