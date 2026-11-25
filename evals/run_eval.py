@@ -65,6 +65,7 @@ def run(models: list[str], modes: list[str], limit: int | None) -> None:
 
 
 def summarize() -> None:
+    RESULTS.mkdir(parents=True, exist_ok=True)
     lines = ["| Model | Schema retrieval | Execution accuracy | Easy | Medium | Hard | Self-repairs that worked | Avg tool calls | Avg seconds |",
              "|---|---|---|---|---|---|---|---|---|"]
     summary = []
