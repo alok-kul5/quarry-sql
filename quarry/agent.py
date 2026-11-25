@@ -93,7 +93,7 @@ class Agent:
         system = self.system_prompt(question)
         messages = [{"role": "system", "content": system}, {"role": "user", "content": question}]
         emit("start", question=question, model=self.llm.model, retrieval=self.retrieval,
-             context=system.split("\n")[-1] if self.retrieval else None)
+             context=system[len(SYSTEM):].strip() if self.retrieval else None)
 
         answer, error, steps, repairs, nudged = "", None, 0, 0, False
         for steps in range(1, self.max_steps + 1):
