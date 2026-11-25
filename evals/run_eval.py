@@ -31,6 +31,13 @@ def load_questions() -> list[dict]:
     return [json.loads(line) for line in QUESTIONS.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def infra_failure(res) -> bool:
+    """Ollama down or the machine out of memory: not the model's fault, so never scored."""
+    if res.error and "Ollama" in res.error:
+        return True
+    return any(e["type"] == "tool_result" and "Out of Memory" in (e.get("error") or "") for e in res.trace)
+
+
 def run(models: list[str], modes: list[str], limit: int | None) -> None:
     db = Database(max_rows=1000)
     retriever = SchemaRetriever(db)
@@ -49,7 +56,16 @@ def run(models: list[str], modes: list[str], limit: int | None) -> None:
                 if q["id"] in done:
                     continue
                 t = time.perf_counter()
-                res = agent.run(q["q"])
+                res = None
+                for attempt in range(6):
+                    res = agent.run(q["q"])
+                    if not infra_failure(res):
+                        break
+                    print(f"  infra error on q{q['id']} (attempt {attempt + 1}), waiting", flush=True)
+                    time.sleep(20)
+                if infra_failure(res):
+                    print(f"  skipping q{q['id']} for now; rerun to resume", flush=True)
+                    continue
                 ok = result_matches(gold[q["id"]], res.result["rows"] if res.result else None)
                 row = {"id": q["id"], "level": q["level"], "correct": ok, "sql": res.sql,
                        "answer": res.answer[:400], "steps": res.steps, "repairs": res.repairs,
