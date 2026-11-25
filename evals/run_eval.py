@@ -38,22 +38,27 @@ def infra_failure(res) -> bool:
     return any(e["type"] == "tool_result" and "Out of Memory" in (e.get("error") or "") for e in res.trace)
 
 
-def run(models: list[str], modes: list[str], limit: int | None) -> None:
+def _done(out: Path) -> set[int]:
+    if not out.exists():
+        return set()
+    return {json.loads(line)["id"] for line in out.read_text(encoding="utf-8").splitlines() if line}
+
+
+def run(models: list[str], modes: list[str], limit: int | None, reverse: bool = False) -> None:
     db = Database(max_rows=1000)
     retriever = SchemaRetriever(db)
     questions = load_questions()[:limit]
+    if reverse:
+        questions = questions[::-1]
     gold = {q["id"]: db.query(q["sql"], max_rows=1000).rows for q in questions}
     RESULTS.mkdir(parents=True, exist_ok=True)
     for model in models:
         llm = OllamaClient(model)
         for mode in modes:
             out = RESULTS / f"{model.replace(':', '-')}__{mode}.jsonl"
-            done = set()
-            if out.exists():
-                done = {json.loads(line)["id"] for line in out.read_text(encoding="utf-8").splitlines() if line}
             agent = Agent(db, llm, retrieval=(mode == "retrieval"), retriever=retriever, log_dir=None)
             for q in questions:
-                if q["id"] in done:
+                if q["id"] in _done(out):  # re-read: another runner may share this file
                     continue
                 t = time.perf_counter()
                 res = None
@@ -86,7 +91,8 @@ def summarize() -> None:
              "|---|---|---|---|---|---|---|---|---|"]
     summary = []
     for f in sorted(RESULTS.glob("*__*.jsonl")):
-        rows = [json.loads(line) for line in f.read_text(encoding="utf-8").splitlines() if line]
+        rows = list({r["id"]: r for r in reversed(
+            [json.loads(line) for line in f.read_text(encoding="utf-8").splitlines() if line])}.values())
         if not rows:
             continue
         model, mode = f.stem.split("__")
@@ -119,5 +125,6 @@ if __name__ == "__main__":
     ap.add_argument("--modes", nargs="+", default=["retrieval", "none"], choices=["retrieval", "none"])
     ap.add_argument("--limit", type=int)
     ap.add_argument("--summary-only", action="store_true")
+    ap.add_argument("--reverse", action="store_true", help="run questions last to first")
     a = ap.parse_args()
-    summarize() if a.summary_only else run(a.models, a.modes, a.limit)
+    summarize() if a.summary_only else run(a.models, a.modes, a.limit, a.reverse)

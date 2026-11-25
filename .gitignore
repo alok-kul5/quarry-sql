@@ -8,3 +8,4 @@ data/*.duckdb.wal
 runs/
 evals/results/raw/
 evals/eval-log.txt
+evals/eval-log-b.txt
