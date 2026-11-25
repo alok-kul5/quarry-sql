@@ -61,6 +61,31 @@ flowchart LR
 ## Results
 
 <!-- results:start -->
+50 questions ([`evals/questions.jsonl`](evals/questions.jsonl)): 15 easy, 23 medium and 12 hard, each with gold SQL. A run
+passes when the agent's final result holds the gold rows. Row and column order are ignored, extra columns are
+allowed, and numbers must agree to within a cent. The scorer is strict on purpose: a fraction is not a percentage,
+and a per-day breakdown is not a weekday-versus-weekend answer. Temperature is 0 and the seed is fixed. Hardware is
+an RTX 5050 laptop GPU with 8 GB, with Ollama running Q4_K_M weights.
+
+| Model | Schema retrieval | Execution accuracy | Easy | Medium | Hard | Self-repairs that worked | Avg tool calls | Avg seconds |
+|---|---|---|---|---|---|---|---|---|
+| qwen2.5:7b | off | **70.2%** (33/47) | 14/15 | 15/23 | 4/9 | 5 | 3.1 | 4.6 |
+| qwen2.5:7b | on | **92.0%** (46/50) | 15/15 | 21/23 | 10/12 | 0 | 1.2 | 2.5 |
+
+Raw per-question results are in [`evals/results/`](evals/results). Reproduce them with `python evals/run_eval.py`.
+
+**What the numbers say**
+
+- **Schema retrieval is worth about 22 points.** Without it the model has to explore with `describe_table` first,
+  using about 3 tool calls instead of 1.2. Even then it often guesses a code instead of joining the lookup table:
+  `payment_type = 2` for credit card is actually cash. With retrieval, the matching value
+  (`payment_types.description = 'Credit card'`) sits in the prompt, and those questions pass.
+- **Self-repair matters when the model is exploring.** With retrieval off, 5 questions passed only after the model
+  read a DuckDB binder error such as `Table "z" does not have a column named "zone_name". Candidate bindings: "zone"`
+  and fixed its own query.
+- **The remaining failures are real reasoning misses**, not plumbing: averaging a ratio wrongly (`avg(tip) /
+  any_value(fare)`), returning seven weekdays when asked for weekend versus weekday, or still guessing a code for
+  "disputed".
 <!-- results:end -->
 
 ## Guardrails
@@ -94,6 +119,7 @@ py -3.11 -m venv .venv
 ```
 
 Open http://localhost:8765. Pick a model and turn schema retrieval on or off from the controls under the question box.
+`QUARRY_MODEL`, `QUARRY_NUM_CTX` (default 8192) and `OLLAMA_URL` change the defaults.
 
 ```bash
 .venv\Scripts\python -m pytest -q                        # no GPU needed: the LLM is scripted
@@ -121,5 +147,7 @@ reads through `describe_table` and the retriever indexes.
 | Live trace with a self-repair | Schema browser |
 |---|---|
 | ![Trace](docs/screens/repair.png) | ![Schema](docs/screens/schema.png) |
+
+![Home](docs/screens/home.png)
 
 <p align="center"><sub>Built by <a href="https://alok.is-a.dev">Alok Kulkarni</a> · part of a portfolio of projects at <a href="https://github.com/alok-kul5">github.com/alok-kul5</a></sub></p>

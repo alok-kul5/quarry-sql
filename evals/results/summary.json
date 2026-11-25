@@ -1,0 +1,46 @@
+[
+ {
+  "model": "qwen2.5:7b",
+  "mode": "none",
+  "correct": 33,
+  "n": 47,
+  "accuracy": 70.2,
+  "easy": [
+   14,
+   15
+  ],
+  "medium": [
+   15,
+   23
+  ],
+  "hard": [
+   4,
+   9
+  ],
+  "repaired_and_correct": 5,
+  "avg_tool_calls": 3.1,
+  "avg_seconds": 4.6
+ },
+ {
+  "model": "qwen2.5:7b",
+  "mode": "retrieval",
+  "correct": 46,
+  "n": 50,
+  "accuracy": 92.0,
+  "easy": [
+   15,
+   15
+  ],
+  "medium": [
+   21,
+   23
+  ],
+  "hard": [
+   10,
+   12
+  ],
+  "repaired_and_correct": 0,
+  "avg_tool_calls": 1.2,
+  "avg_seconds": 2.5
+ }
+]
