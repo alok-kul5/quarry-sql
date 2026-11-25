@@ -26,7 +26,7 @@ fixes its own errors, charts the result and shows every step it took.</p>
 - **Guardrails** that do not trust the model or the data (see [Guardrails](#guardrails)).
 - **Trace view and run logs.** Every step streams to the UI over Server-Sent Events and is saved as JSON in `runs/`.
   Old runs can be replayed from the Run log panel.
-- **Eval harness.** 50 questions with gold SQL, scored by execution accuracy, for two local models with and without
+- **Eval harness.** 50 questions with gold SQL, scored by execution accuracy, for two local models, with and without
   retrieval.
 - **MCP server.** The same guarded tools are exposed over MCP (`python -m quarry.mcp_server`), so any MCP client can use them.
 
@@ -71,21 +71,34 @@ an RTX 5050 laptop GPU with 8 GB, with Ollama running Q4_K_M weights.
 |---|---|---|---|---|---|---|---|---|
 | qwen2.5:7b | off | **70.2%** (33/47) | 14/15 | 15/23 | 4/9 | 5 | 3.1 | 4.6 |
 | qwen2.5:7b | on | **92.0%** (46/50) | 15/15 | 21/23 | 10/12 | 0 | 1.2 | 2.5 |
+| qwen3:4b | on | **92.0%** (46/50) | 15/15 | 20/23 | 11/12 | 0 | 1.2 | 131.5 |
 
 Raw per-question results are in [`evals/results/`](evals/results). Reproduce them with `python evals/run_eval.py`.
 
+**Coverage notes.** Three of the four planned runs are complete.
+- **qwen3:4b with retrieval off was skipped for compute.** The GPU was shared with other jobs, which pushed it to
+  about 10 questions an hour.
+- **qwen2.5:7b with retrieval off covers questions 1 to 47.** Questions 48 to 50 hit Ollama outages, and the runner
+  never scores those, so it reports 47.
+- **Context and timing.** qwen3:4b ran with an 8192 context for questions 1 to 34 and 4096 after that, so it could share
+  VRAM. Prompts are about 1.5k tokens, so nothing was cut off. Its average seconds reflect a shared, swapping GPU.
+  qwen2.5:7b ran alone at about 2.5 s per question.
+
 **What the numbers say**
 
-- **Schema retrieval is worth about 22 points.** Without it the model has to explore with `describe_table` first,
-  using about 3 tool calls instead of 1.2. Even then it often guesses a code instead of joining the lookup table:
-  `payment_type = 2` for credit card is actually cash. With retrieval, the matching value
+- **Schema retrieval is worth about 22 points on qwen2.5:7b.** Without it the model has to explore with
+  `describe_table` first, using about 3 tool calls instead of 1.2. Even then it often guesses a code instead of joining
+  the lookup table: `payment_type = 2` for credit card is actually cash. With retrieval, the matching value
   (`payment_types.description = 'Credit card'`) sits in the prompt, and those questions pass.
+- **With retrieval, the 4B model matches the 7B one** (both 92%). The schema context closes most of the gap a smaller
+  model would otherwise have.
 - **Self-repair matters when the model is exploring.** With retrieval off, 5 questions passed only after the model
   read a DuckDB binder error such as `Table "z" does not have a column named "zone_name". Candidate bindings: "zone"`
   and fixed its own query.
-- **The remaining failures are real reasoning misses**, not plumbing: averaging a ratio wrongly (`avg(tip) /
-  any_value(fare)`), returning seven weekdays when asked for weekend versus weekday, or still guessing a code for
-  "disputed".
+- **The remaining failures are real reasoning misses**, not plumbing. Both models answer "what share of all trips were
+  paid by credit card" with an inner join that silently drops the 3,415 trips with no payment type: 78.06% against
+  the true 77.97%. Other misses average a ratio wrongly, return seven weekdays when asked for weekend versus weekday,
+  or guess a code for "disputed".
 <!-- results:end -->
 
 ## Guardrails
